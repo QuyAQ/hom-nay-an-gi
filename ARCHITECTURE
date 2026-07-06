@@ -7,3 +7,4 @@ Nguyên tắc:
 - Chỉ sử dụng package hỗ trợ đa nền tảng.
 - Hạn chế tối đa platform-specific code.
 - Nếu cần code riêng cho từng nền tảng, phải có lý do rõ ràng và được ghi nhận trong Product Decision.
+x
