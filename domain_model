@@ -1,0 +1,290 @@
+# Domain Model
+
+## Project
+
+Hôm Nay Ăn Gì
+
+## Version
+
+1.0
+
+## Last Update
+
+2026-07-06
+
+---
+
+# Mục tiêu
+
+Domain Model định nghĩa các thực thể nghiệp vụ cốt lõi của hệ thống.
+
+Đây là tài liệu nền tảng để:
+
+- Thiết kế Database
+- Thiết kế API
+- Thiết kế Recommendation Engine
+- Thiết kế AI Context
+- Thiết kế UI
+- Phát triển các Phase tiếp theo
+
+---
+
+# Design Principles
+
+- User First
+- Recommendation First
+- AI Ready
+- Offline First
+- Easy to Extend
+
+---
+
+# Domain Overview
+
+User
+│
+├── Preference
+│
+├── MealHistory
+│
+├── Context
+│
+│
+Recommendation
+│
+├── Food
+│
+└── Restaurant
+
+---
+
+# Core Entities
+
+## 1. User
+
+### Mục đích
+
+Đại diện cho người sử dụng ứng dụng.
+
+### Trách nhiệm
+
+- Quản lý hồ sơ
+- Lưu sở thích
+- Lưu lịch sử ăn uống
+- Là trung tâm của Recommendation Engine
+
+### Thuộc tính dự kiến
+
+- id
+- nickname
+- budgetPreference
+- dietaryPreference
+- favoriteCuisine
+- currentLocation
+
+---
+
+## 2. Food
+
+### Mục đích
+
+Đại diện cho một món ăn.
+
+### Thuộc tính dự kiến
+
+- id
+- name
+- category
+- tags
+- averagePrice
+- image
+
+### Phase sau
+
+- calories
+- nutrition
+- ingredients
+
+---
+
+## 3. Restaurant
+
+### Mục đích
+
+Đại diện cho quán ăn.
+
+### Thuộc tính dự kiến
+
+- id
+- name
+- address
+- latitude
+- longitude
+- openingHours
+- rating
+
+---
+
+## 4. MealHistory
+
+### Mục đích
+
+Lưu lại các bữa ăn đã sử dụng.
+
+Đây là dữ liệu quan trọng nhất để hệ thống học hành vi người dùng.
+
+### Thuộc tính dự kiến
+
+- food
+- restaurant
+- dateTime
+- cost
+- userRating
+- note
+
+---
+
+## 5. Recommendation
+
+### Mục đích
+
+Lưu kết quả gợi ý của hệ thống.
+
+### Thuộc tính dự kiến
+
+- recommendedFood
+- restaurant
+- confidenceScore
+- recommendationReason
+- createdTime
+- accepted
+
+### Mục tiêu
+
+Giải thích được vì sao hệ thống đưa ra gợi ý.
+
+---
+
+## 6. Preference
+
+### Mục đích
+
+Lưu các sở thích dài hạn của người dùng.
+
+Ví dụ
+
+- thích đồ cay
+- thích món Nhật
+- không ăn hành
+- ưu tiên tiết kiệm
+
+Preference sẽ thay đổi theo thời gian dựa trên hành vi.
+
+---
+
+## 7. Context
+
+### Mục đích
+
+Mô tả trạng thái hiện tại của người dùng khi yêu cầu gợi ý.
+
+Ví dụ
+
+- thời gian
+- vị trí
+- thời tiết
+- ngân sách
+- đi một mình hay nhiều người
+- ngày trong tuần
+
+Context là đầu vào của Recommendation Engine.
+
+---
+
+# MVP Features
+
+## Feature 1
+
+Gợi ý món ăn phù hợp.
+
+---
+
+## Feature 2
+
+Tìm quán ăn gần vị trí hiện tại.
+
+---
+
+## Feature 3
+
+Lưu lịch sử bữa ăn.
+
+---
+
+## Feature 4
+
+Chấm điểm và ghi nhận bữa ăn.
+
+Đây là nguồn dữ liệu để AI học.
+
+---
+
+## Feature 5
+
+Học sở thích người dùng.
+
+---
+
+## Feature 6
+
+Giới thiệu món ăn cho người khác.
+
+Mục tiêu:
+
+- Chia sẻ món ngon
+- Tăng khả năng lan truyền tự nhiên
+
+---
+
+# Out Of Scope (MVP)
+
+Không thực hiện trong Phase 1
+
+- Đăng nhập
+- Backend
+- Đồng bộ nhiều thiết bị
+- AI Chat
+- Mạng xã hội
+- Thanh toán
+
+---
+
+# Future Phases
+
+## Phase 2
+
+Food Memory
+
+- học thói quen
+- thống kê
+- gợi ý thông minh hơn
+
+## Phase 3
+
+Lifestyle AI
+
+Mở rộng Recommendation Engine sang:
+
+- Chi tiêu
+- Giải trí
+- Du lịch
+- Sức khỏe
+- Thói quen
+
+---
+
+# Notes
+
+Đây là tài liệu sống (Living Document).
+
+Mọi thay đổi về nghiệp vụ phải được cập nhật tại đây trước khi triển khai kỹ thuật.
