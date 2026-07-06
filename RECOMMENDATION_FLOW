@@ -1,28 +1,24 @@
-User mở App
+Context
 
 ↓
 
-Lấy Context
+Candidate
 
 ↓
 
-Recommendation Engine
+Filter
 
 ↓
 
-Top 5 món
+Scoring
 
 ↓
 
-Top 5 quán
+Ranking
 
 ↓
 
-User chọn
-
-↓
-
-Đi ăn
+Recommendation
 
 ↓
 
@@ -30,4 +26,4 @@ Feedback
 
 ↓
 
-Update Preference
+Learning
