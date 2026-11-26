@@ -1,9 +1,1 @@
-{
-  "name": "what2eat",
-  "compatibility_date": "2026-11-25",
-  "assets": {
-    "directory": "./public"
-  },
-  "workers_dev": true,
-  "preview_urls": false
-}
+{"name":"what2eat","main":"worker.js","compatibility_date":"2026-11-25","assets":{"directory":"./public","binding":"ASSETS","run_worker_first":["/api/*"]},"workers_dev":true,"preview_urls":false,"d1_databases":[{"binding":"DB","database_name":"what2eat-catalog","database_id":"REPLACE_WITH_D1_DATABASE_ID","migrations_dir":"migrations"}]}
