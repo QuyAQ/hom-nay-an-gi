@@ -1,4 +1,3 @@
-
 {
   "name": "what2eat-dev",
   "main": "worker.js",
@@ -10,6 +9,9 @@
   },
   "workers_dev": true,
   "preview_urls": false,
+  "observability": {
+    "enabled": true
+  },
   "vars": {
     "EMAIL_FROM": "WhatOrderly <noreply@mail.whatorderly.com>"
   },
@@ -28,4 +30,3 @@
     }
   ]
 }
-
