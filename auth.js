@@ -2,7 +2,7 @@ const enc=new TextEncoder(), now=()=>Math.floor(Date.now()/1000), hex=b=>Array.f
 const json=(data,status=200,headers={})=>Response.json(data,{status,headers:{'Cache-Control':'no-store',...headers}});
 const fail=(message,status=400)=>{throw Object.assign(new Error(message),{status})};
 const equal=(a,b)=>{if(typeof a!=='string'||typeof b!=='string'||a.length!==b.length)return false;let n=0;for(let i=0;i<a.length;i++)n|=a.charCodeAt(i)^b.charCodeAt(i);return n===0};
-async function password(p,s=random()){const key=await crypto.subtle.importKey('raw',enc.encode(p),'PBKDF2',false,['deriveBits']);let x=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:enc.encode(s),iterations:600000},key,256);return s+':'+hex(x)}
+async function password(p,s=random()){const key=await crypto.subtle.importKey('raw',enc.encode(p),'PBKDF2',false,['deriveBits']);let x=await crypto.subtle.deriveBits({name:'PBKDF2',hash:'SHA-256',salt:enc.encode(s),iterations:100000},key,256);return s+':'+hex(x)}
 function validPassword(p){if(typeof p!=='string'||p.length<12||p.length>128)fail('Mật khẩu cần 12–128 ký tự.')}
 function emailOf(v){let e=typeof v==='string'?v.trim().toLowerCase():'';if(e.length>254||! /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e))fail('Email không hợp lệ.');return e}
 const cookie=(t,age)=>`w2e_account=${t}; Path=/; HttpOnly; Secure; SameSite=Strict; Max-Age=${age}`;
@@ -51,5 +51,21 @@ if(path==='/api/auth/consent'){if(typeof b.enabled!=='boolean')fail('Không hợ
 if(path==='/api/auth/change'){validPassword(b.password);validPassword(b.old);await limit('change:'+a.id,5,3600);let old=await first('SELECT password_hash FROM accounts WHERE id=?',a.id);if(!equal(await password(b.old,old.password_hash.split(':')[0]),old.password_hash))fail('Mật khẩu hiện tại không đúng');await db.batch([q('UPDATE accounts SET password_hash=? WHERE id=?',await password(b.password),a.id),q('DELETE FROM account_sessions WHERE account_id=?',a.id)]);return json({ok:true},200,{'Set-Cookie':cookie('',0)})}
 if(path==='/api/auth/delete'){validPassword(b.password);await limit('delete:'+a.id,5,3600);let old=await first('SELECT password_hash FROM accounts WHERE id=?',a.id);if(!equal(await password(b.password,old.password_hash.split(':')[0]),old.password_hash))fail('Mật khẩu không đúng');await db.batch([q('DELETE FROM account_events WHERE account_id=?',a.id),q('DELETE FROM account_sessions WHERE account_id=?',a.id),q('DELETE FROM email_challenges WHERE email=?',a.email),q('DELETE FROM accounts WHERE id=?',a.id)]);return json({ok:true},200,{'Set-Cookie':cookie('',0)})}
 if(path==='/api/events'){if(!['APP_OPEN','REQUEST_SUGGESTION','VIEW_FOOD_DETAIL','CONFIRM_MEAL','RATE_FOOD','SAVE_FOOD','SAVE_RESTAURANT'].includes(b.kind))fail('Sự kiện không hợp lệ');await db.batch([q('UPDATE accounts SET last_active_at=? WHERE id=?',now(),a.id),q('INSERT INTO account_events SELECT ?,id,?,? FROM accounts WHERE id=? AND consent=1',crypto.randomUUID(),b.kind,now(),a.id)]);return json({ok:true})}fail('Not found',404)
-}catch(e){return json({error:e.status?e.message:'Lỗi hệ thống. Vui lòng thử lại.'},e.status||500)}}
+}}catch(e){
+    if (!e.status || e.status >= 500) {
+        console.error('AUTH_SYSTEM_ERROR', {
+            path: path,
+            name: e.name,
+            reason: e.name === 'NotSupportedError'
+                ? 'Unsupported crypto operation'
+                : 'Internal processing error'
+        });
+    }
+
+    return json({
+        error: e.status
+            ? e.message
+            : 'Lỗi hệ thống. Vui lòng thử lại.'
+    }, e.status || 500);
+}}
 
