@@ -1,6 +1,6 @@
 
 {
-  "name": "what2eat",
+  "name": "what2eat-dev",
   "main": "worker.js",
   "compatibility_date": "2026-11-25",
   "assets": {
@@ -13,9 +13,16 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "what2eat-catalog",
-      "database_id": "def06ba4-dfc1-4865-b01a-568367a61e87",
+      "database_name": "what2eat-catalog-dev",
+      "database_id": "b67f2c88-2619-4d63-9881-b0138a107c08",
       "migrations_dir": "migrations"
+    },
+    {
+      "binding": "USER_DB",
+      "database_name": "what2eat-users-dev",
+      "database_id": "8cc07d1d-789c-4c8b-a15a-c62d13798867",
+      "migrations_dir": "migrations/users"
     }
   ]
 }
+
