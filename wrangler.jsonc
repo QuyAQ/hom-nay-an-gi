@@ -10,8 +10,9 @@
   "workers_dev": true,
   "preview_urls": false,
   "observability": {
-    "enabled": true
-  },
+    "enabled": true,
+    "head_sampling_rate": 1
+},
   "vars": {
     "EMAIL_FROM": "WhatOrderly <noreply@mail.whatorderly.com>"
   },
