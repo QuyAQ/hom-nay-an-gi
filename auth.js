@@ -51,7 +51,7 @@ if(path==='/api/auth/consent'){if(typeof b.enabled!=='boolean')fail('Không hợ
 if(path==='/api/auth/change'){validPassword(b.password);validPassword(b.old);await limit('change:'+a.id,5,3600);let old=await first('SELECT password_hash FROM accounts WHERE id=?',a.id);if(!equal(await password(b.old,old.password_hash.split(':')[0]),old.password_hash))fail('Mật khẩu hiện tại không đúng');await db.batch([q('UPDATE accounts SET password_hash=? WHERE id=?',await password(b.password),a.id),q('DELETE FROM account_sessions WHERE account_id=?',a.id)]);return json({ok:true},200,{'Set-Cookie':cookie('',0)})}
 if(path==='/api/auth/delete'){validPassword(b.password);await limit('delete:'+a.id,5,3600);let old=await first('SELECT password_hash FROM accounts WHERE id=?',a.id);if(!equal(await password(b.password,old.password_hash.split(':')[0]),old.password_hash))fail('Mật khẩu không đúng');await db.batch([q('DELETE FROM account_events WHERE account_id=?',a.id),q('DELETE FROM account_sessions WHERE account_id=?',a.id),q('DELETE FROM email_challenges WHERE email=?',a.email),q('DELETE FROM accounts WHERE id=?',a.id)]);return json({ok:true},200,{'Set-Cookie':cookie('',0)})}
 if(path==='/api/events'){if(!['APP_OPEN','REQUEST_SUGGESTION','VIEW_FOOD_DETAIL','CONFIRM_MEAL','RATE_FOOD','SAVE_FOOD','SAVE_RESTAURANT'].includes(b.kind))fail('Sự kiện không hợp lệ');await db.batch([q('UPDATE accounts SET last_active_at=? WHERE id=?',now(),a.id),q('INSERT INTO account_events SELECT ?,id,?,? FROM accounts WHERE id=? AND consent=1',crypto.randomUUID(),b.kind,now(),a.id)]);return json({ok:true})}fail('Not found',404)
-}}catch(e){
+}catch(e){
     if (!e.status || e.status >= 500) {
         console.error('AUTH_SYSTEM_ERROR', {
             path: path,
