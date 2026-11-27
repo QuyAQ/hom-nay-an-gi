@@ -12,7 +12,34 @@ async function current(){let t=request.headers.get('Cookie')?.match(/(?:^|;\s*)w
 async function session(id){let t=random();await run('INSERT INTO account_sessions VALUES (?,?,?)',await hash(t),id,now()+2592000);return json({ok:true},200,{'Set-Cookie':cookie(t,2592000)})}
 async function codeHash(e,p,c){if(!env.AUTH_PEPPER||env.AUTH_PEPPER.length<32)fail('Chưa cấu hình xác thực.',503);let k=await crypto.subtle.importKey('raw',enc.encode(env.AUTH_PEPPER),{name:'HMAC',hash:'SHA-256'},false,['sign']);return hex(await crypto.subtle.sign('HMAC',k,enc.encode(JSON.stringify([e,p,c]))))}
 try{
-if(path.startsWith('/api/admin/')){if(request.method!=='GET')fail('Method not allowed',405);if(!env.ADMIN_TOKEN||env.ADMIN_TOKEN.length<32||!equal(await hash(request.headers.get('Authorization')||''),await hash('Bearer '+env.ADMIN_TOKEN)))fail('Không có quyền',401);if(path==='/api/admin/dashboard'){return json(await first('SELECT (SELECT count(*) FROM accounts) total,(SELECT count(*) FROM accounts WHERE last_active_at>=?) active7,(SELECT count(*) FROM account_events) events,(SELECT count(*) FROM accounts WHERE consent=1) consent',now()-604800))}if(path==='/api/admin/users'){let u=new URL(request.url),page=Math.max(0,Math.min(10000,parseInt(u.searchParams.get('page'))||0)),search=(u.searchParams.get('q')||'').slice(0,254);let {results}=await q('SELECT id,email,created_at,last_active_at,consent FROM accounts WHERE instr(email,?)>0 OR instr(id,?)>0 ORDER BY created_at DESC LIMIT 25 OFFSET ?',search,search,page*25).all();return json(results)}if(path==='/api/admin/user'){let id=new URL(request.url).searchParams.get('id');let a=await first('SELECT id,email,created_at,last_active_at,consent FROM accounts WHERE id=?',id);if(!a)fail('Không tìm thấy',404);let {results}=await q('SELECT kind,count(*) total FROM account_events WHERE account_id=? GROUP BY kind',id).all();return json({...a,events:results})}fail('Not found',404)}
+if(path.startsWith('/api/admin/')){if(request.method!=='GET')fail('Method not allowed',405);const adminToken = env.ADMIN_TOKEN;
+const authHeader = request.headers.get('Authorization') || '';
+
+console.log('ADMIN_AUTH_DEBUG', {
+    tokenExists: !!adminToken,
+    tokenLength: adminToken?.length || 0,
+    headerExists: !!authHeader,
+    headerLength: authHeader.length,
+    hasBearer: authHeader.startsWith('Bearer ')
+});
+
+if (!adminToken) {
+    console.log('ADMIN_AUTH_ERROR: TOKEN_MISSING');
+    fail('Không có quyền', 401);
+}
+
+if (adminToken.length < 32) {
+    console.log('ADMIN_AUTH_ERROR: TOKEN_TOO_SHORT');
+    fail('Không có quyền', 401);
+}
+
+if (!equal(
+    await hash(authHeader),
+    await hash('Bearer ' + adminToken)
+)) {
+    console.log('ADMIN_AUTH_ERROR: TOKEN_MISMATCH');
+    fail('Không có quyền', 401);
+};if(path==='/api/admin/dashboard'){return json(await first('SELECT (SELECT count(*) FROM accounts) total,(SELECT count(*) FROM accounts WHERE last_active_at>=?) active7,(SELECT count(*) FROM account_events) events,(SELECT count(*) FROM accounts WHERE consent=1) consent',now()-604800))}if(path==='/api/admin/users'){let u=new URL(request.url),page=Math.max(0,Math.min(10000,parseInt(u.searchParams.get('page'))||0)),search=(u.searchParams.get('q')||'').slice(0,254);let {results}=await q('SELECT id,email,created_at,last_active_at,consent FROM accounts WHERE instr(email,?)>0 OR instr(id,?)>0 ORDER BY created_at DESC LIMIT 25 OFFSET ?',search,search,page*25).all();return json(results)}if(path==='/api/admin/user'){let id=new URL(request.url).searchParams.get('id');let a=await first('SELECT id,email,created_at,last_active_at,consent FROM accounts WHERE id=?',id);if(!a)fail('Không tìm thấy',404);let {results}=await q('SELECT kind,count(*) total FROM account_events WHERE account_id=? GROUP BY kind',id).all();return json({...a,events:results})}fail('Not found',404)}
 if(path==='/api/auth/me'&&request.method==='GET'){let a=await current();return json(a?{id:a.id,email:a.email,consent:!!a.consent}:null)}
 if(request.method!=='POST')fail('Method not allowed',405);if(request.headers.get('Origin')!==new URL(request.url).origin||!request.headers.get('Content-Type')?.startsWith('application/json'))fail('Forbidden',403);let raw=await request.text();if(raw.length>8192)fail('Payload too large',413);let b;try{b=JSON.parse(raw)}catch{fail('JSON không hợp lệ')}if(!b||typeof b!=='object')fail('JSON không hợp lệ');let ip=request.headers.get('CF-Connecting-IP')||'unknown';await limit('ip:'+await hash(ip),100,3600);
 if(path==='/api/auth/request'){let e=emailOf(b.email),p=b.purpose;if(!['register','reset'].includes(p))fail('Yêu cầu không hợp lệ');await limit('send:'+e,3,3600);await limit('send-ip:'+await hash(ip),10,3600);await limit('send-global',80,86400);let a=await first('SELECT id FROM accounts WHERE email=?',e);if((p==='register'&&a)||(p==='reset'&&!a))return json({ok:true});if(!env.RESEND_API_KEY||!env.EMAIL_FROM)fail('Chưa cấu hình gửi email',503);let x;do{x=crypto.getRandomValues(new Uint32Array(1))[0]}while(x>=4294000000);let c=String(x%1000000).padStart(6,'0'),t=now();await run('INSERT INTO email_challenges VALUES (?,?,?,?,0,?) ON CONFLICT(email,purpose) DO UPDATE SET code_hash=excluded.code_hash,expires_at=excluded.expires_at,attempts=0,created_at=excluded.created_at',e,p,await codeHash(e,p,c),t+300,t);let r=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:'Bearer '+env.RESEND_API_KEY,'Content-Type':'application/json'},body:JSON.stringify({from:env.EMAIL_FROM,to:[e],subject:'Mã xác thực WhatOrderly',text:`Mã xác thực của bạn: ${c}. Có hiệu lực 5 phút. Không chia sẻ mã này.`})});if(!r.ok)fail('Không gửi được email. Thử lại sau.',503);return json({ok:true})}
