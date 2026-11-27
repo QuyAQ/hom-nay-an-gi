@@ -1,1 +1,7 @@
+# V0.4.5.1 Email – DEV only
+1. D1 what2eat-users-dev (8cc07d1d-789c-4c8b-a15a-c62d13798867): execute migrations/users/0002_email_accounts.sql. New tables coexist with old anonymous schema; no data migration.
+2. Worker what2eat-dev: keep RESEND_API_KEY and EMAIL_FROM. Add two independent random secrets AUTH_PEPPER and ADMIN_TOKEN (32+ characters each, password manager). Do not commit secrets. Check variables survive CI deployment; if EMAIL_FROM disappears restore it or configure keep_vars in wrangler.
+3. Upload patch paths in one commit to develop-v045, not main. No change to wrangler or catalog.
+4. Open DEV app in fresh browser; account button. Register with own email, password >=12 chars, OTP expires 5 min. Test duplicate registration, invalid OTP, login, logout, reset, change password, consent, delete. Admin /admin/ uses token in memory only. Verify unauthorized admin API returns 401. Test old features and production unchanged.
+5. DEV only: PBKDF2 600k may exceed Workers Free CPU limits; inspect logs and use suitable plan or managed auth if needed; do not lower security silently. Rate limits are basic, not comprehensive bot protection. No audit log, retention job, sync, email change, or offline event queue. Admin token is temporary; protect with Access before production. Local data remains shared within browser, not account isolated. Events are UI action signals, not guaranteed successful transactions. No live email or Cloudflare tests performed.
 
